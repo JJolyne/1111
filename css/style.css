@@ -1471,4 +1471,517 @@ button {
   .footer-links {
     grid-template-columns: repeat(2, 1fr);
   }
+
+}
+
+
+/* ==========================================
+   CTA 联系图标 · 预览入口
+   ========================================== */
+.cta-preview-icons {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}
+
+.preview-icon-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-smooth),
+    color var(--transition-smooth),
+    background var(--transition-smooth);
+}
+
+.preview-icon-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.preview-icon-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+}
+
+
+/* ==========================================
+   全局弹窗 · 香奈儿极简白卡风格（单例复用）
+   z-index: 3000 — 高于搜索弹窗(2000)、导航(1000)、移动端菜单(999)
+   支持：单图 / 联系我们 / 文字介绍 / 图片画廊
+   ========================================== */
+
+/* --- 灯箱容器：全屏 fixed，居中卡片 --- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s;
+}
+
+.lightbox.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* --- 遮罩层：纯黑半透明，无模糊 --- */
+.lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  cursor: pointer;
+}
+
+/* --- 白底卡片（默认正方形，用于单图/二维码） --- */
+.lightbox-card {
+  position: relative;
+  z-index: 1;
+  background: #FFFFFF;
+  width: 42vw;
+  max-width: 460px;
+  min-width: 280px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px 36px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
+}
+
+.lightbox.active .lightbox-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 非图片类型弹窗：取消固定正方形，允许内容撑高 */
+.lightbox-card--auto {
+  aspect-ratio: auto;
+  justify-content: flex-start;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 48px 36px 40px;
+}
+
+/* --- 标题 --- */
+.lightbox-title {
+  font-family: var(--font-primary);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #1A1A1A;
+  text-align: center;
+  margin-bottom: 28px;
+  flex-shrink: 0;
+}
+
+.lightbox-card--auto .lightbox-title {
+  margin-bottom: 24px;
+}
+
+/* --- 关闭按钮（卡片右上角） --- */
+.lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #999999;
+  font-size: 28px;
+  font-weight: 300;
+  font-family: var(--font-primary);
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.lightbox-close:hover {
+  opacity: 0.5;
+}
+
+
+/* ==========================================
+   弹窗内容区
+   ========================================== */
+
+/* --- 单图容器（二维码等） --- */
+.lightbox-image-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+.lightbox-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* --- 文字正文区（联系我们 / 技术规格） --- */
+.lightbox-body {
+  display: none;
+  width: 100%;
+  font-family: var(--font-primary);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.lightbox-body.show {
+  display: block;
+}
+
+/* 电话号码强调 */
+.lightbox-phone {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #1A1A1A;
+  margin-top: 20px;
+}
+
+/* 文字段落 */
+.lightbox-text {
+  text-align: left;
+}
+
+.lightbox-text p {
+  margin-bottom: 10px;
+}
+
+.lightbox-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- 图片画廊（家具作品） --- */
+.lightbox-gallery {
+  display: none;
+  width: 100%;
+  gap: 12px;
+}
+
+.lightbox-gallery.show {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.lightbox-gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.lightbox-gallery img:hover {
+  opacity: 0.7;
+}
+
+/* 画廊模式：卡片更宽，图片充分利用留白 */
+.lightbox-card--gallery {
+  max-width: 620px;
+  aspect-ratio: auto;
+  justify-content: flex-start;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 40px 28px 32px;
+}
+
+.lightbox-card--gallery .lightbox-title {
+  margin-bottom: 18px;
+}
+
+/* 画廊放大后的返回按钮 */
+.lightbox-gallery-back {
+  display: none;
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  z-index: 2;
+  border: none;
+  background: transparent;
+  color: #999999;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity var(--transition-fast);
+}
+
+.lightbox-gallery-back.show {
+  display: block;
+}
+
+.lightbox-gallery-back:hover {
+  opacity: 0.5;
+}
+
+
+/* ==========================================
+   弹窗内容区 · 移动端适配
+   ========================================== */
+@media (max-width: 640px) {
+  .lightbox-card {
+    width: 85vw;
+    max-width: 85vw;
+    min-width: 0;
+    padding: 40px 24px 28px;
+  }
+
+  .lightbox-card--auto,
+  .lightbox-card--gallery {
+    padding: 40px 24px 32px;
+    max-height: 80vh;
+  }
+
+  .lightbox-card--gallery {
+    max-width: 85vw;
+  }
+
+  .lightbox-title {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .lightbox-close {
+    top: 10px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 26px;
+  }
+
+  .lightbox-gallery-back {
+    top: 12px;
+    left: 16px;
+    font-size: 12px;
+  }
+
+  .lightbox-gallery {
+    gap: 8px;
+  }
+
+  .lightbox-body {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .lightbox-phone {
+    font-size: 19px;
+  }
+
+}
+
+
+/* ==========================================
+   底部社交媒体图标栏
+   4 图标：微博 / 小红书 / 微信 / 抖音
+   纯白扁平单色 · 黑色底 · 悬浮提示
+   ========================================== */
+
+/* --- 覆盖旧样式，统一为黑色底白色图标 --- */
+.footer-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #000000;
+  padding: 14px 28px;
+  border-radius: 40px;
+}
+
+/* --- 单个图标容器（链接 & 按钮统一） --- */
+.footer-social-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #FFFFFF;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity var(--transition-smooth);
+}
+
+.footer-social-icon:hover {
+  opacity: 0.65;
+}
+
+/* 按钮类型重置（微信图标） */
+.footer-social-icon--btn {
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  outline: none;
+}
+
+/* --- SVG 图标统一尺寸 --- */
+.footer-social-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+
+/* ==========================================
+   悬浮提示 TOOLTIP（纯 CSS）
+   气泡在图标正上方 · 深灰半透明底 · 白色文字
+   ========================================== */
+.footer-social-icon[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);  /* 图标正上方，留 10px 间距 */
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  white-space: nowrap;
+
+  /* 文字样式 */
+  font-family: var(--font-primary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+  line-height: 1;
+
+  /* 气泡底 */
+  background: rgba(60, 60, 60, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 6px;
+
+  /* 默认隐藏 */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  /* 过渡动画 */
+  transition:
+    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.25s;
+}
+
+/* --- 悬浮显示 --- */
+.footer-social-icon[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- 小三角箭头（气泡底部指向图标） --- */
+.footer-social-icon[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(2px);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 5px solid rgba(60, 60, 60, 0.85);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.25s;
+}
+
+.footer-social-icon[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* ==========================================
+   社交媒体图标栏 · 移动端适配
+   ========================================== */
+@media (max-width: 640px) {
+  .footer-social {
+    gap: 14px;
+    padding: 12px 22px;
+    border-radius: 36px;
+  }
+
+  .footer-social-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .footer-social-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* 移动端触摸同样触发 tooltip */
+  .footer-social-icon[data-tooltip]:active::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .footer-social-icon[data-tooltip]:active::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 平板端适度调整间距 */
+@media (max-width: 1024px) {
+  .footer-social {
+    gap: 16px;
+  }
 }
