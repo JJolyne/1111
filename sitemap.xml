@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  润驰营销平台 — sitemap.xml
+  成都润驰禾具商贸有限公司
+  https://www.run-chi.com/
+
+  重要：部署后将 YOUR_DOMAIN 替换为实际域名
+  每次新增页面后更新此文件并重新提交到百度站长平台
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
+
+  <!-- ===== 首页 ===== -->
+  <url>
+    <loc>https://www.run-chi.com/</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <mobile:mobile/>
+  </url>
+
+  <!-- ===== 业务板块锚点页（作为独立 URL 提交） ===== -->
+  <url>
+    <loc>https://www.run-chi.com/#furniture</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.run-chi.com/#realestate</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.run-chi.com/#concrete</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.run-chi.com/#about</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

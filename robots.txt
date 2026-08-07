@@ -1,0 +1,47 @@
+# ============================================
+# robots.txt — 润驰营销平台
+# 成都润驰禾具商贸有限公司
+# https://www.run-chi.com/
+# ============================================
+
+User-agent: *
+Allow: /
+Disallow: /photobox/
+Disallow: /css/
+Disallow: /js/
+
+# 百度爬虫特殊配置
+User-agent: Baiduspider
+Allow: /
+Disallow: /photobox/
+Disallow: /css/
+Disallow: /js/
+Crawl-delay: 1
+
+# 搜狗爬虫
+User-agent: Sogou web spider
+Allow: /
+Crawl-delay: 1
+
+# 360 爬虫
+User-agent: 360Spider
+Allow: /
+Crawl-delay: 1
+
+# Google 爬虫
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing 爬虫
+User-agent: bingbot
+Allow: /
+Crawl-delay: 0
+
+# 禁止爬取的内容
+User-agent: *
+Disallow: /*.json$
+Disallow: /*.xml$
+
+# Sitemap 位置
+Sitemap: https://www.run-chi.com/sitemap.xml

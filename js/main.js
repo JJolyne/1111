@@ -6,6 +6,9 @@
 (function () {
   'use strict';
 
+  // ========== INITIAL FEATHER ICONS RENDER ==========
+  if (window.feather) feather.replace();
+
   // ========== DOM REFS ==========
   const header = document.getElementById('header');
   const carousel = document.getElementById('carousel');
@@ -300,6 +303,42 @@
     });
   }
 
+
+  // ========== DEAD LINK HANDLER — Toast Notification ==========
+  (function initDeadLinkHandler() {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.setAttribute('aria-live', 'polite');
+    toast.textContent = '该页面即将上线';
+    document.body.appendChild(toast);
+
+    let toastTimer = null;
+
+    function showToast() {
+      if (toastTimer) clearTimeout(toastTimer);
+      toast.classList.add('show');
+      toastTimer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // Intercept clicks on dead links (href="#" without functional attributes)
+    document.body.addEventListener('click', function (e) {
+      const link = e.target.closest('a[href="#"]');
+      if (!link) return;
+
+      // Skip links that have functional attributes
+      if (link.hasAttribute('data-modal-type')) return;
+      if (link.hasAttribute('data-full-image')) return;
+      if (link.hasAttribute('data-dropdown')) return;
+      if (link.classList.contains('dp-feature-link')) return;
+
+      e.preventDefault();
+      showToast();
+    });
+  })();
+
 })();
 
 
@@ -329,8 +368,8 @@
 
   if (!lightbox) return;
 
-  // 画廊素材（缩略图 800×800，点击放大用 1200×1200）
-  var GALLERY_SOURCES = [
+  // 画廊素材（缩略图 1000×1000，点击放大用 1600×1600）
+  const GALLERY_SOURCES = [
     'https://images.unsplash.com/photo-1555041469-a586c61ea9bc',
     'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace',
     'https://images.unsplash.com/photo-1538688525198-9b88f6f53126',
@@ -349,22 +388,49 @@
     return base + '?w=1600&h=1600&fit=crop&q=90';
   }
 
-  // 保存画廊状态，用于放大后返回
-  var gallerySavedTitle = '';
-  var gallerySavedHTML = '';
+  // ========== 画廊图片预加载 — 避免每次打开重新请求 ==========
+  // 创建隐藏预加载容器（off-screen 但仍然渲染，确保图片加载到缓存）
+  const galleryPreload = document.createElement('div');
+  galleryPreload.id = 'galleryPreload';
+  galleryPreload.setAttribute('aria-hidden', 'true');
+  galleryPreload.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
+  document.body.appendChild(galleryPreload);
+
+  // 一次性创建所有缩略图 DOM 元素，存入预加载容器
+  const galleryThumbs = GALLERY_SOURCES.map((src, i) => {
+    const img = document.createElement('img');
+    img.src = thumbUrl(src);
+    img.setAttribute('data-full', fullUrl(src));
+    img.alt = '家具作品 ' + (i + 1);
+    galleryPreload.appendChild(img);
+    return img;
+  });
+
+  // 当前画廊展示顺序（元素引用数组），用于放大后返回时恢复
+  let galleryCurrentOrder = null;
+  // 保存画廊标题，用于放大后返回
+  let gallerySavedTitle = '';
 
   /** 随机打乱数组 */
   function shuffle(arr) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
     }
     return a;
   }
 
+  /** 将所有画廊图片移回预加载容器（不销毁 DOM） */
+  function moveGalleryToPreload() {
+    while (lightboxGallery.firstChild) {
+      galleryPreload.appendChild(lightboxGallery.firstChild);
+    }
+  }
+
   /** 隐藏所有内容区 */
   function hideAllContent() {
+    moveGalleryToPreload();
     lightboxImageWrap.style.display = 'none';
     lightboxBody.classList.remove('show');
     lightboxGallery.classList.remove('show');
@@ -373,9 +439,8 @@
     lightboxGalleryBack.classList.remove('show');
     lightboxImage.src = '';
     lightboxBody.innerHTML = '';
-    lightboxGallery.innerHTML = '';
     gallerySavedTitle = '';
-    gallerySavedHTML = '';
+    galleryCurrentOrder = null;
   }
 
   /** 显示单图内容（二维码 / 画廊放大） */
@@ -395,29 +460,24 @@
       '<span class="lightbox-phone">158-8455-0880</span>';
   }
 
-  /** 显示家具作品画廊 */
+  /** 显示家具作品画廊 — 复用预加载的图片 DOM，不重新请求 */
   function showGalleryContent() {
     hideAllContent();
     lightboxCard.classList.add('lightbox-card--gallery');
+    // 随机打乱并移入画廊容器
+    galleryCurrentOrder = shuffle(galleryThumbs.slice());
+    galleryCurrentOrder.forEach(img => lightboxGallery.appendChild(img));
     lightboxGallery.classList.add('show');
-    var shuffled = shuffle(GALLERY_SOURCES);
-    var html = '';
-    for (var i = 0; i < shuffled.length; i++) {
-      html += '<img src="' + thumbUrl(shuffled[i]) + '" data-full="' + fullUrl(shuffled[i]) + '" alt="家具作品 ' + (i + 1) + '" loading="lazy">';
-    }
-    lightboxGallery.innerHTML = html;
-    // 保存画廊状态，供放大后返回
     gallerySavedTitle = lightboxTitle.textContent;
-    gallerySavedHTML = lightboxGallery.innerHTML;
   }
 
   /** 从画廊点击 → 切换到单图放大视图 */
   function enlargeGalleryImage(imgEl) {
-    var fullSrc = imgEl.getAttribute('data-full') || imgEl.src;
-    // 保存当前画廊状态
+    const fullSrc = imgEl.getAttribute('data-full') || imgEl.src;
+    // 保存画廊状态（标题 + 当前图片顺序已保存在 galleryCurrentOrder 中）
     gallerySavedTitle = lightboxTitle.textContent;
-    gallerySavedHTML = lightboxGallery.innerHTML;
-    // 切换到单图模式
+    // 将画廊图片移回预加载容器
+    moveGalleryToPreload();
     lightboxGallery.classList.remove('show');
     lightboxCard.classList.remove('lightbox-card--gallery');
     lightboxCard.classList.add('lightbox-card--auto');
@@ -428,7 +488,7 @@
     lightboxGalleryBack.classList.add('show');
   }
 
-  /** 从单图放大视图 → 返回画廊 */
+  /** 从单图放大视图 → 返回画廊（恢复原顺序） */
   function backToGallery() {
     lightboxImageWrap.style.display = 'none';
     lightboxImage.src = '';
@@ -436,7 +496,10 @@
     lightboxCard.classList.add('lightbox-card--gallery');
     lightboxGalleryBack.classList.remove('show');
     lightboxTitle.textContent = gallerySavedTitle;
-    lightboxGallery.innerHTML = gallerySavedHTML;
+    // 按保存的顺序将图片从预加载容器移回画廊
+    if (galleryCurrentOrder) {
+      galleryCurrentOrder.forEach(img => lightboxGallery.appendChild(img));
+    }
     lightboxGallery.classList.add('show');
   }
 
@@ -530,7 +593,7 @@
   // ========== 画廊图片点击 → 放大查看 ==========
   if (lightboxGallery) {
     lightboxGallery.addEventListener('click', function (e) {
-      var img = e.target.closest('img');
+      const img = e.target.closest('img');
       if (!img) return;
       e.stopPropagation();
       enlargeGalleryImage(img);
@@ -550,14 +613,14 @@
 
   // ========== 事件委托：data-modal-type 触发弹窗 ==========
   document.body.addEventListener('click', function (e) {
-    var trigger = e.target.closest('[data-modal-type]');
+    const trigger = e.target.closest('[data-modal-type]');
     if (!trigger) return;
 
     e.preventDefault();
     e.stopPropagation();
 
-    var type  = trigger.getAttribute('data-modal-type');
-    var title = trigger.getAttribute('data-modal-title');
+    const type  = trigger.getAttribute('data-modal-type');
+    const title = trigger.getAttribute('data-modal-title');
 
     if (type) {
       openModal(title, type, null);
@@ -566,7 +629,7 @@
 
   // ========== 兼容：data-full-image 仍可触发单图弹窗 ==========
   document.body.addEventListener('click', function (e) {
-    var trigger = e.target.closest('[data-full-image]');
+    const trigger = e.target.closest('[data-full-image]');
     if (!trigger) return;
     // 如果同一元素已有 data-modal-type，不重复处理
     if (trigger.hasAttribute('data-modal-type')) return;
@@ -574,7 +637,7 @@
     e.preventDefault();
     e.stopPropagation();
 
-    var imageUrl = trigger.getAttribute('data-full-image');
+    const imageUrl = trigger.getAttribute('data-full-image');
     if (imageUrl) {
       openModal(trigger.getAttribute('data-modal-title') || '', 'image', imageUrl);
     }
