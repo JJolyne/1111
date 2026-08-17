@@ -569,7 +569,7 @@
     lightboxBody.innerHTML =
       '<div class="lightbox-text">' +
         '<p>公司名称：成都润驰禾具商贸有限公司</p>' +
-        '<p>公司地址：四川省成都市 ××× 区 ××× 大道 ××× 号</p>' +  // TODO 替换为真实地址
+        '<p>公司地址：四川省成都市双流区</p>' +  // TODO 替换为真实地址
         '<p>营业时间：周一至周日 9:00 – 18:00</p>' +                // TODO 替换为真实营业时间
       '</div>' +
       '<span class="lightbox-phone">158-8455-0880</span>';
