@@ -1793,6 +1793,21 @@ button {
   margin-bottom: 18px;
 }
 
+/* 证书模式：三列竖版缩略图 */
+.lightbox-card--certs .lightbox-gallery {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.lightbox-card--certs .lightbox-gallery img {
+  aspect-ratio: 3 / 4;
+}
+
+/* 放大查看时限制图片高度，保证竖版证书完整显示 */
+.lightbox-card--auto .lightbox-image-wrap {
+  max-height: 70vh;
+}
+
 /* 画廊放大后的返回按钮 */
 .lightbox-gallery-back {
   display: none;

@@ -566,13 +566,16 @@
 
         <!-- ========== 联系图标 · 点击预览 ========== -->
         <div class="cta-preview-icons">
-          <button class="preview-icon-btn" data-full-image="https://placehold.co/800x800/1a1a1a/e5e5e5?text=WeChat+QR" aria-label="预览微信二维码" title="微信二维码">
+          <!-- 1. 对话气泡 — 微信二维码 -->
+          <button class="preview-icon-btn" data-full-image="photobox/wx2code.png" data-modal-title="微信二维码" aria-label="预览微信二维码" title="微信二维码">
             <i data-feather="message-circle"></i>
           </button>
-          <button class="preview-icon-btn" data-full-image="https://placehold.co/1200x800/1a1a1a/e5e5e5?text=Location+Map" aria-label="预览公司位置" title="公司位置">
+          <!-- 2. 定位地点 — 公司地址文字 -->
+          <button class="preview-icon-btn" data-modal-type="address" data-modal-title="公司地址" aria-label="查看公司地址" title="公司地址">
             <i data-feather="map-pin"></i>
           </button>
-          <button class="preview-icon-btn" data-full-image="https://placehold.co/800x800/1a1a1a/e5e5e5?text=Certificate" aria-label="预览资质证书" title="资质证书">
+          <!-- 3. 奖牌证书 — 资质证书图片预览 -->
+          <button class="preview-icon-btn" data-modal-type="certs" data-modal-title="资质证书" aria-label="预览资质证书" title="资质证书">
             <i data-feather="award"></i>
           </button>
         </div>

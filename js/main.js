@@ -344,11 +344,13 @@
 
 /* ============================================
    全局弹窗系统 MODAL（单例复用）
-   支持 4 种内容类型：
+   支持 6 种内容类型：
      image   — 单图预览（data-full-image 触发，兼容微信二维码）
      contact — 联系我们（标题 + 电话号码）
      gallery — 家具作品预览（标题 + 多图网格）
      text    — 技术规格文字（标题 + 正文段落）
+     address — 公司地址（标题 + 地址文字 + 电话）
+     certs   — 资质证书预览（三列证书缩略图，点击放大）
    关闭方式：×按钮 / 遮罩点击 / ESC键
    ============================================ */
 (function () {
@@ -406,8 +408,47 @@
     return img;
   });
 
+  // ========== 资质证书素材（TODO：替换为真实证书图片） ==========
+  // 当前为内联 SVG 生成的白底细线证书占位图（无需外网请求）；
+  // 替换时把 CERT_SOURCES 改为真实图片 URL 数组即可。
+  const CERT_SOURCES = ['营业执照', '资质证书', '荣誉证书'];
+
+  /** 生成白底细线证书占位图（data URI） */
+  function certPlaceholder(title) {
+    const lines = [336, 380, 424, 468, 512, 556]
+      .map((y) => '<line x1="110" y1="' + y + '" x2="490" y2="' + y + '" stroke="#E8E8E8" stroke-width="2"/>')
+      .join('');
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">' +
+      '<rect width="600" height="800" fill="#FFFFFF"/>' +
+      '<rect x="40" y="40" width="520" height="720" fill="none" stroke="#C9C9C9" stroke-width="2"/>' +
+      '<rect x="56" y="56" width="488" height="688" fill="none" stroke="#E3E3E3" stroke-width="1.5"/>' +
+      '<circle cx="300" cy="150" r="46" fill="none" stroke="#C9C9C9" stroke-width="2"/>' +
+      '<path d="M300 106l12 24 26 4-19 18 4 26-23-12-23 12 4-26-19-18 26-4z" fill="#C9C9C9"/>' +
+      '<text x="300" y="252" text-anchor="middle" font-family="Georgia,\'SimSun\',\'Songti SC\',serif" font-size="42" letter-spacing="16" fill="#1A1A1A">' + title + '</text>' +
+      '<line x1="140" y1="286" x2="460" y2="286" stroke="#D8D8D8" stroke-width="1.5"/>' +
+      lines +
+      '<circle cx="450" cy="640" r="60" fill="none" stroke="#C9C9C9" stroke-width="2.5"/>' +
+      '<circle cx="450" cy="640" r="48" fill="none" stroke="#DDDDDD" stroke-width="1.5"/>' +
+      '<path d="M450 588l13 27 30 4-22 21 5 30-26-14-26 14 5-30-22-21 30-4z" fill="#C9C9C9"/>' +
+      '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  // 与画廊素材一致：一次性创建证书缩略图并放入预加载容器
+  const certThumbs = CERT_SOURCES.map((title) => {
+    const src = certPlaceholder(title);
+    const img = document.createElement('img');
+    img.src = src;
+    img.setAttribute('data-full', src);
+    img.alt = title;
+    galleryPreload.appendChild(img);
+    return img;
+  });
+
   // 当前画廊展示顺序（元素引用数组），用于放大后返回时恢复
   let galleryCurrentOrder = null;
+  // 证书模式标记：从放大视图返回时恢复三列样式
+  let galleryIsCerts = false;
   // 保存画廊标题，用于放大后返回
   let gallerySavedTitle = '';
 
@@ -436,11 +477,13 @@
     lightboxGallery.classList.remove('show');
     lightboxCard.classList.remove('lightbox-card--auto');
     lightboxCard.classList.remove('lightbox-card--gallery');
+    lightboxCard.classList.remove('lightbox-card--certs');
     lightboxGalleryBack.classList.remove('show');
     lightboxImage.src = '';
     lightboxBody.innerHTML = '';
     gallerySavedTitle = '';
     galleryCurrentOrder = null;
+    galleryIsCerts = false;
   }
 
   /** 显示单图内容（二维码 / 画廊放大） */
@@ -463,6 +506,7 @@
   /** 显示家具作品画廊 — 复用预加载的图片 DOM，不重新请求 */
   function showGalleryContent() {
     hideAllContent();
+    galleryIsCerts = false;
     lightboxCard.classList.add('lightbox-card--gallery');
     // 随机打乱并移入画廊容器
     galleryCurrentOrder = shuffle(galleryThumbs.slice());
@@ -480,6 +524,7 @@
     moveGalleryToPreload();
     lightboxGallery.classList.remove('show');
     lightboxCard.classList.remove('lightbox-card--gallery');
+    lightboxCard.classList.remove('lightbox-card--certs');
     lightboxCard.classList.add('lightbox-card--auto');
     lightboxImage.src = fullSrc;
     lightboxImageWrap.style.display = '';
@@ -494,6 +539,7 @@
     lightboxImage.src = '';
     lightboxCard.classList.remove('lightbox-card--auto');
     lightboxCard.classList.add('lightbox-card--gallery');
+    if (galleryIsCerts) lightboxCard.classList.add('lightbox-card--certs');
     lightboxGalleryBack.classList.remove('show');
     lightboxTitle.textContent = gallerySavedTitle;
     // 按保存的顺序将图片从预加载容器移回画廊
@@ -515,6 +561,33 @@
       '</div>';
   }
 
+  /** 显示公司地址 */
+  function showAddressContent() {
+    hideAllContent();
+    lightboxCard.classList.add('lightbox-card--auto');
+    lightboxBody.classList.add('show');
+    lightboxBody.innerHTML =
+      '<div class="lightbox-text">' +
+        '<p>公司名称：成都润驰禾具商贸有限公司</p>' +
+        '<p>公司地址：四川省成都市 ××× 区 ××× 大道 ××× 号</p>' +  // TODO 替换为真实地址
+        '<p>营业时间：周一至周日 9:00 – 18:00</p>' +                // TODO 替换为真实营业时间
+      '</div>' +
+      '<span class="lightbox-phone">158-8455-0880</span>';
+  }
+
+  /** 显示资质证书预览（三列缩略图，点击放大） */
+  function showCertsContent() {
+    hideAllContent();
+    lightboxCard.classList.add('lightbox-card--gallery');
+    lightboxCard.classList.add('lightbox-card--certs');
+    galleryIsCerts = true;
+    // 证书保持固定顺序（不打乱）
+    galleryCurrentOrder = certThumbs.slice();
+    galleryCurrentOrder.forEach(img => lightboxGallery.appendChild(img));
+    lightboxGallery.classList.add('show');
+    gallerySavedTitle = lightboxTitle.textContent;
+  }
+
   // ========== 打开弹窗 ==========
   function openModal(title, type, extra) {
     lightboxTitle.textContent = title || '';
@@ -531,6 +604,12 @@
         break;
       case 'text':
         showTextContent();
+        break;
+      case 'address':
+        showAddressContent();
+        break;
+      case 'certs':
+        showCertsContent();
         break;
       default:
         // 兜底按图片处理
